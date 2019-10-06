@@ -13,7 +13,7 @@ import sys
 
 from phue import Bridge
 
-from modules.animation_vapor import AnimationVapor
+from .modules.animation_vapor import AnimationVapor
 
 __version__ = '0.0.1'
 
@@ -105,7 +105,7 @@ class Phuey(object):
 
         elif self.args.pattern == 'vapor':
             print('Running:\tplay_vapor')
-            AnimationVapor().run()
+            AnimationVapor(self).run()
 
         elif self.args.pattern == 'list-lights':
             print('Running:\tlist_lights')
