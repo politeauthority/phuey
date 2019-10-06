@@ -25,14 +25,16 @@ def api_vapor(enabled=None):
 
     if enabled == 'start':
         process = subprocess.Popen(
-            ['phuey vapor --no-restore'],
+            ['/bin/sh', '-c', 'phuey vapor --no-restore'],
             shell=True)
         redis_client.set('current_proc', process.pid)
         return str(process.pid)
     elif enabled == 'stop':
         current_proc = int(redis_client.get('current_proc'))
         # cmd = ['kill -SIGINT %s' % int(current_proc)]
+        print('Killing proc %s' % current_proc)
         os.kill(current_proc, signal.SIGTERM)
+        return 'Killing proc %s' % current_proc
 
     return '?'
 
