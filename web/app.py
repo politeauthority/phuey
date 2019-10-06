@@ -24,8 +24,9 @@ def hello():
 def api_vapor(enabled=None):
 
     if enabled == 'start':
+        start_cmd = 'phuey vapor --no-restore'
         process = subprocess.Popen(
-            ['/bin/sh', '-c', 'phuey vapor --no-restore'],
+            [start_cmd],
             shell=True)
         redis_client.set('current_proc', process.pid)
         return str(process.pid)
