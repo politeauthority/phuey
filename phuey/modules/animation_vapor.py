@@ -12,6 +12,19 @@ class AnimationVapor(object):
 
     def __init__(self, Phuey):
         self.phuey = Phuey
+        self.pink = {
+            'xy': [0.4176, 0.1868],
+            'sat': 241,
+            'transitiontime': 50,
+            'bri': 254
+        }
+        self.teal = {
+            'xy': [0.18, 0.4214],
+            'sat': 234,
+            'transitiontime': 50,
+            'bri': 254
+        }
+        self.vapor_lights = {}
 
     def run(self):
         """
@@ -23,45 +36,42 @@ class AnimationVapor(object):
         self.phuey.reset_lights()
         self.phuey.bridge.set_light(self.phuey.selected_lights, 'on', True)
 
-        pink = {
-            'xy': [0.4176, 0.1868],
-            'sat': 241,
-            'transitiontime': 50,
-            'bri': 254
-        }
-        teal = {
-            'xy': [0.18, 0.4214],
-            'sat': 234,
-            'transitiontime': 50,
-            'bri': 254
-        }
-        lights = {}
+        print('Press Ctrl+C To exit')
+        self.run_init()
+        self.run_primary_loop()
 
-        # Initial Setup
+    def run_init(self):
+        """
+        Initial setup, sets every other light to one of the initial colors.
+
+        """
         c = 1
         for light_id in self.phuey.selected_lights:
             if (c % 2) == 0:
-                lights[light_id] = 'pink'
-                self.phuey.bridge.set_light(light_id, pink)
+                self.vapor_lights[light_id] = 'pink'
+                self.phuey.bridge.set_light(light_id, self.pink)
             else:
-                lights[light_id] = 'teal'
-                self.phuey.bridge.set_light(light_id, teal)
+                self.vapor_lights[light_id] = 'teal'
+                self.phuey.bridge.set_light(light_id, self.teal)
             c += 1
         time.sleep(3)
 
-        print('Press Ctrl+C To exit')
+    def run_primary_loop(self):
+        """
+        Cycles lights between the teal and pink colors on the cadence of self.delay
+
+        """
         try:
             while True:
                 print('Cycling -\t%s' % datetime.now())
                 for light_id in self.phuey.selected_lights:
-                    if lights[light_id] == 'pink':
-                        self.phuey.bridge.set_light(light_id, 'xy', teal['xy'])
-                        lights[light_id] = 'teal'
+                    if self.vapor_lights[light_id] == 'pink':
+                        self.phuey.bridge.set_light(light_id, 'xy', self.teal['xy'])
+                        self.vapor_lights[light_id] = 'teal'
                     else:
-                        self.phuey.bridge.set_light(light_id, 'xy', pink['xy'])
-                        lights[light_id] = 'pink'
+                        self.phuey.bridge.set_light(light_id, 'xy', self.pink['xy'])
+                        self.vapor_lights[light_id] = 'pink'
                 time.sleep(self.delay)
-
         except KeyboardInterrupt:
             self.phuey.handle_exit()
 

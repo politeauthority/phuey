@@ -21,36 +21,12 @@ __version__ = '0.0.1'
 class Phuey(object):
 
     def __init__(self, animation=None):
-        self.args = self.parsed_args()
+        self.args = self._parse_args()
         self.config = self._load_config()
         self.bridge = Bridge(self.config['bridge_ip'])
         self.selected_lights = self.config['light_ids']
         self.lights = self.bridge.get_light_objects('id')       # All lights in the Hue network
         self.initial_state = {}
-
-    def _load_config(self):
-        """
-        Loads a configuration file from ~/.phuey/config.json or the --config argument
-        """
-        config_location = None
-        print("%s/.phuey/config.json" % str(Path.home()))
-        if self.args.config:
-            config_location = self.args.confg
-        elif os.path.exists("%s/.phuey/config.json" % str(Path.home())):
-            config_location = "%s/.phuey/config.json" % str(Path.home())
-
-        if not config_location:
-            print("Error - No confguration set.")
-            sys.exit(1)
-
-        if not os.path.exists(config_location):
-            print("Error - Could not find config file: %s" % config_location)
-            sys.exit(1)
-
-        with open(config_location) as config_file:
-            data = json.load(config_file)
-
-        return data
 
     def connect(self):
         """
@@ -88,8 +64,7 @@ class Phuey(object):
         Main run of script
 
         """
-        if self.args.pattern != 'list-lights':
-            self._print_selected_lights()
+        self._print_welcome()
 
         if self.args.pattern == 'mark-random':
             print('Running:\tplay_marquee_around_the_room_random_color')
@@ -298,6 +273,10 @@ class Phuey(object):
             print('No initial state recorded')
             return False
 
+        if self.args.no_restore:
+            print('Not returning to initial state, --no-restore used')
+            return True
+
         print('Returning lights to initial state')
         for light_id, light_state in self.initial_state.items():
             new_old_state = {
@@ -312,7 +291,30 @@ class Phuey(object):
 
         return True
 
-    def parsed_args(self):
+    def _load_config(self):
+        """
+        Loads a configuration file from ~/.phuey/config.json or the --config argument
+        """
+        config_location = None
+        if self.args.config:
+            config_location = self.args.confg
+        elif os.path.exists("%s/.phuey/config.json" % str(Path.home())):
+            config_location = "%s/.phuey/config.json" % str(Path.home())
+
+        if not config_location:
+            print("Error - No confguration set.")
+            sys.exit(1)
+
+        if not os.path.exists(config_location):
+            print("Error - Could not find config file: %s" % config_location)
+            sys.exit(1)
+
+        with open(config_location) as config_file:
+            data = json.load(config_file)
+
+        return data
+
+    def _parse_args(self):
         """
         Parsers CLI args
 
@@ -341,6 +343,11 @@ class Phuey(object):
             default=False,
             help="Override brightness.")
         parser.add_argument(
+            "--no-restore",
+            default=False,
+            help="Override brightness.",
+            action='store_true')
+        parser.add_argument(
             "--config",
             nargs='?',
             default=False,
@@ -352,8 +359,19 @@ class Phuey(object):
             help="Run script in high verbosity mode.")
 
         args = parser.parse_args()
-        print(args)
         return args
+
+    def _print_welcome(self):
+        phuey_txt = """
+ ____  __ __  __ __    ___  __ __
+|    \|  |  ||  |  |  /  _]|  |  |
+|  o  )  |  ||  |  | /  [_ |  |  |
+|   _/|  _  ||  |  ||    _]|  ~  |
+|  |  |  |  ||  :  ||   [_ |___, |
+|  |  |  |  ||     ||     ||     |
+|__|  |__|__| \__,_||_____||____/
+phuey %s\n\n""" % __version__
+        print(phuey_txt)
 
 
 if __name__ == '__main__':
