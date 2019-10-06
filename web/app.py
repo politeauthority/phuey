@@ -1,14 +1,16 @@
 """Phuey Web App
 
 """
-from datetime import datetime
+import signal
 import subprocess
+import os
+
 
 from flask import Flask
 from flask_redis import FlaskRedis
 
 app = Flask(__name__)
-app.config['REDIS_URL'] = "redis://:password@192.168.50.10:6379/0"
+app.config['REDIS_URL'] = "redis://:@192.168.50.10:6379/0"
 
 redis_client = FlaskRedis(app)
 
@@ -25,7 +27,12 @@ def api_vapor(enabled=None):
         process = subprocess.Popen(
             ['phuey vapor --no-restore'],
             shell=True)
+        redis_client.set('current_proc', process.pid)
         return str(process.pid)
+    elif enabled == 'stop':
+        current_proc = int(redis_client.get('current_proc'))
+        # cmd = ['kill -SIGINT %s' % int(current_proc)]
+        os.kill(current_proc, signal.SIGTERM)
 
     return '?'
 
@@ -36,6 +43,6 @@ def test_redis():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host="0.0.0.0", port=5000)
 
 # End File: phuey/web/app.py
