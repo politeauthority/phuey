@@ -96,7 +96,6 @@ class Phuey(object):
 
         else:
             print("No playbook for: %s" % self.args.pattern)
-            print(self.args)
             exit(1)
 
     def play_random_color_play(self):
