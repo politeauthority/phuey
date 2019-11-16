@@ -47,8 +47,6 @@ def api_animate(animation):
         data.update(kill_data)
 
     options = _format_options(request.args)
-    print('\n\n')
-
     data['status'] = 'success'
     data = run_animation(animation, options)
     return jsonify(data)
@@ -82,6 +80,8 @@ def run_animation(animation, options=[]):
     Verifies and runs an animation, setting the appropriate keys in redis.
 
     """
+    options.append('--no-restore')
+    options.append('--delay=.2')
     start_cmd = [PHUEY_CLI_APPLICATION, animation] + options
     print('Running: %s' % start_cmd)
     process = subprocess.Popen(start_cmd)
@@ -186,9 +186,6 @@ def _format_options(raw_options) -> list:
         options.append('-v')
     if 'no-restore' in raw_options:
         options.append('--no-restore')
-
-
-    print('Options: %s' % options)
 
     return options
 
