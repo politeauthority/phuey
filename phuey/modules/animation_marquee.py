@@ -89,7 +89,7 @@ class AnimationMarquee(object):
             if self.delay < .01:
                 self.delay = .1
         else:
-            self.delay = 5
+            self.delay = 1
 
         return True
 

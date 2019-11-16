@@ -28,6 +28,13 @@ def index():
     return render_template('index.html', **data)
 
 
+@app.route('/animations/<animation>')
+def animations(animation=None):
+    data = {}
+    if not animation:
+        return render_template('animations.html', **data)
+
+
 @app.route('/api/animate/<animation>', methods=['GET', 'POST'])
 def api_animate(animation):
     """
@@ -81,7 +88,7 @@ def run_animation(animation, options=[]):
 
     """
     options.append('--no-restore')
-    options.append('--delay=.2')
+    # options.append('--delay=.2')
     start_cmd = [PHUEY_CLI_APPLICATION, animation] + options
     print('Running: %s' % start_cmd)
     process = subprocess.Popen(start_cmd)
@@ -197,7 +204,7 @@ def _get_status() -> dict:
     if data['status'] == 'running':
         data['start'] = _get_json_redis('phuey_start')
         data['pid'] = _get_json_redis('phuey_pid')
-    print(data)
+        data['options'] = _get_json_redis('phuey_options')
     return data
 
 if __name__ == '__main__':
