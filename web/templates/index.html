@@ -1,108 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="">
-  <meta name="author" content="">
-
-  <title>Phuey</title>
-
-  <!-- Bootstrap core CSS -->
-  <link href="/static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-
-  <!-- Custom styles for this template -->
-  <link href="/static/css/simple-sidebar.css" rel="stylesheet">
-
-</head>
-
-<body>
-
-  <div class="d-flex" id="wrapper">
-
-    <!-- Sidebar -->
-    <div class="bg-light border-right" id="sidebar-wrapper">
-      <div class="sidebar-heading">Phuey</div>
-      <div class="list-group list-group-flush">
-        <a href="#" class="list-group-item list-group-item-action bg-light">Dashboard</a>
-        <a href="/animations/" class="list-group-item list-group-item-action bg-light">Animations</a>
-        <a href="#" class="list-group-item list-group-item-action bg-light">Status</a>
-        <a href="#" class="list-group-item list-group-item-action bg-light">Settings</a>
-        <a href="#" class="list-group-item list-group-item-action bg-light">More Info</a>
-      </div>
-    </div>
-    <!-- /#sidebar-wrapper -->
-
-    <!-- Page Content -->
-    <div id="page-content-wrapper">
-      <div class="container-fluid">
-        <h1 class="mt-4">Phuey</h1>
-        <div class="row">
-          <div class="col-lg-6">
-            <h3>Current Status</h3>
-            {% if status['status'] == 'running' %}
-              <p><b>Animation:</b> {{status['animation']}}</p>
-              <p><b>Animation:</b> {{status['start']}}</p>
-              <p><button id="animation-stop">Stop</button></p>
-            {%else%}
-              <p>Phuey is not currently running an animation</p>
-            {%endif%}
-
-          </div>
-          <div class="col-lg-6">
-            <h3>Animations</h3>
-            <ul>
-              <li>Vapor Wave <button value="vapor" type="button" class="animation-request btn btn-primary">Run</button></li>
-              <li>Cycle Color <button value="cycle-color" type="button" class="animation-request btn btn-primary">Run</button></li>
-              <li>Marquee <button value="marquee" type="button" class="animation-request btn btn-primary">Run</button></li>
-
-            </ul>
-          </div>
-      </div>
-    </div>
-    <!-- /#page-content-wrapper -->
+{% extends "layout.html" %}
+{% block content %}
+<div class="row">
+  <div class="col-lg-6">
+    <h3>Current Status</h3>
+    {% if status['status'] == 'running' %}
+      <p><b>Animation:</b> {{status['animation']}}</p>
+      <p><b>Animation:</b> {{status['start']}}</p>
+      <p><button id="animation-stop">Stop</button></p>
+    {%else%}
+      <p>Phuey is not currently running an animation</p>
+    {%endif%}
 
   </div>
-  <!-- /#wrapper -->
+  <div class="col-lg-6">
+    <h3>Animations</h3>
+    <ul>
+      <li>Vapor Wave <button value="vapor" type="button" class="animation-request btn btn-primary">Run</button></li>
+      <li>Cycle Color <button value="cycle-color" type="button" class="animation-request btn btn-primary">Run</button></li>
+      <li>Marquee <button value="marquee" type="button" class="animation-request btn btn-primary">Run</button></li>
 
-  <!-- Bootstrap core JavaScript -->
-  <script src="/static/vendor/jquery/jquery.min.js"></script>
-  <script src="/static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-  <!-- Menu Toggle Script -->
-  <script>
-    $("#menu-toggle").click(function(e) {
-      e.preventDefault();
-      $("#wrapper").toggleClass("toggled");
-    });
-
-
-
-
-    $( "#animation-stop" ).click(function() {
-      $.ajax({
-        type: "POST",
-        url: '/api/stop',
-      });
-    });
-
-    // Run an animation
-    $( ".animation-request" ).click(function() {
-      animation = $(this).attr('value')
-      $.ajax({
-        type: "POST",
-        url: '/api/animate/' + animation,
-      });
-    });
-
-
-
-  </script>
-
-
-
-</body>
-
-</html>
+    </ul>
+  </div>
+</div>
+{%endblock%}

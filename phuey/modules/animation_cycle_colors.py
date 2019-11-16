@@ -5,11 +5,11 @@ Has the options of delay.
 """
 import time
 
-
 class AnimationCycleColors(object):
 
     def __init__(self, Phuey):
         self.phuey = Phuey
+        self.stored_options = ['phuey_animation_cycle_color_delay']
         self.delta = {
             'sat': 234,
             'transitiontime': 4,
@@ -55,12 +55,15 @@ class AnimationCycleColors(object):
         Sets the delay from CLI args or default.
 
         """
+        redis_delay = self.phuey.redis.get('phuey_animation_cycle_colors_delay')
+        self.delay = 0
         if self.phuey.args.delay:
             self.delay = float(self.phuey.args.delay)
-            if self.delay > .01:
-                self.delay = .1
-        else:
-            self.delay = .5
+        elif redis_delay:
+            self.delay = float(redis_delay)
+
+        if self.delay > .01:
+            self.delay = .1
 
         return True
 

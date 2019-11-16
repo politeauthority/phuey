@@ -9,6 +9,7 @@ class AnimationMarquee(object):
 
     def __init__(self, Phuey):
         self.phuey = Phuey
+        self.stored_options = ['phuey_animation_marquee_delay']
         self.delta = {
             'sat': 234,
             'transitiontime': 1,
@@ -32,7 +33,7 @@ class AnimationMarquee(object):
 
         """
         self.phuey.capture_initial_state()
-        self._set_delay()
+        self._set_option_delay()
         self.phuey.bridge.set_light(self.phuey.selected_lights, {'on': False})
         # self.phuey.bridge.set_light(self.phuey.selected_lights, 'on', True)
         print('Press Ctrl+C To exit')
@@ -79,17 +80,21 @@ class AnimationMarquee(object):
             command['hue'] = hue_val
             print('set new hue: %s\n' % hue_val)
 
-    def _set_delay(self):
+    def _set_option_delay(self):
         """
         Sets the delay from CLI args or default.
 
         """
+        redis_delay = self.phuey.redis.get('phuey_animation_marquee_delay')
         if self.phuey.args.delay:
             self.delay = float(self.phuey.args.delay)
-            if self.delay < .01:
-                self.delay = .1
+        elif redis_delay:
+            self.delay = float(redis_delay)
         else:
             self.delay = 1
+
+        if self.delay < .01:
+            self.delay = .1
 
         return True
 
