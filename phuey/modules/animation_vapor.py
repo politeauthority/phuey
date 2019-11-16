@@ -81,9 +81,9 @@ class AnimationVapor(object):
 
         """
         if self.phuey.args.delay:
-            self.phuey.delay = int(self.phuey.args.delay)
-            if self.delay > 2:
-                self.delay = 2
+            self.delay = float(self.phuey.args.delay)
+            if self.delay < 2:
+                self.delay = 3
         else:
             self.delay = 5
 
