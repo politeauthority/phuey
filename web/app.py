@@ -28,6 +28,10 @@ def index():
     data['status'] = _get_status()
     return render_template('index.html', **data)
 
+@app.route('/settings')
+def settings_form():
+    return render_template('settings_form.html')
+
 
 @app.route('/animation-list')
 def animations():
