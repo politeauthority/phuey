@@ -29,6 +29,8 @@ class Phuey(object):
         self.bridge = Bridge(self.config['bridge_ip'])
         self.selected_lights = self.config['light_ids']
         self.lights = self.bridge.get_light_objects('id')       # All lights in the Hue network
+        self.brightness = self._set_global_brightness()
+        self.delay = self._set_global_delay()
         self.initial_state = {}
 
         self.list_lights()
@@ -335,6 +337,38 @@ class Phuey(object):
             data = json.load(config_file)
 
         return data
+
+    def _set_global_brightness(self) -> int:
+        """
+        Sets global baseline brightness.
+        Attempts to grab setting from redis key `phuey_global_brightness`, but if not available sets
+        global brightness to 254, or full bore.
+
+        """
+        redis_bright = self.redis.get('phuey_global_brightness')
+        if not redis_bright:
+            return 254
+        return int(redis_bright)
+
+    def _set_global_delay(self) -> float:
+        """
+        Sets global baseline delay.
+        Attempts to grab setting from CLI, then redis key `phuey_global_delay`, but if not neither
+        are available sets the value to 3.
+        This value should always be in seconds, but represented as a float.
+
+        """
+        delay = 0
+        redis_delay = self.redis.get('phuey_global_delay')
+        if self.args.delay:
+            delay = float(self.args.delay)
+        elif redis_delay:
+            delay = float(redis_delay)
+
+        if delay < .01:
+            delay = 3
+
+        return delay
 
     def _parse_args(self):
         """

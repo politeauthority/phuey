@@ -4,6 +4,7 @@
 import time
 import random
 
+import redis
 
 class AnimationMarquee(object):
 
@@ -13,7 +14,7 @@ class AnimationMarquee(object):
         self.delta = {
             'sat': 234,
             'transitiontime': 1,
-            'bri': 254,
+            'bri': self.phuey.brightness,
             'on': True,
         }
         self.hues = [
@@ -33,7 +34,6 @@ class AnimationMarquee(object):
 
         """
         self.phuey.capture_initial_state()
-        self._set_option_delay()
         self.phuey.bridge.set_light(self.phuey.selected_lights, {'on': False})
         # self.phuey.bridge.set_light(self.phuey.selected_lights, 'on', True)
         print('Press Ctrl+C To exit')
@@ -53,7 +53,7 @@ class AnimationMarquee(object):
         hue = 0
         # self.delta['transitiontime'] = self.phuey.delay_to_hue_transition_time(self.delay)
         print(self.phuey.selected_lights)
-        print('delay: %s' % self.delay)
+        print('delay: %s' % self.phuey.delay)
         last_light = None
         command = self.delta
         command['hue'] = self.hues[0]
@@ -71,7 +71,7 @@ class AnimationMarquee(object):
                     print('turning off light: %s' % self.phuey.light_digest[last_light])
                     self.phuey.bridge.set_light(last_light, {'on': False})
                 print('\n')
-                time.sleep(self.delay)
+                time.sleep(self.phuey.delay)
                 last_light = light_id
                 # off_lights = self.phuey.selected_lights
             print('\ncycle complete')
@@ -79,24 +79,6 @@ class AnimationMarquee(object):
             hue_val = self._set_new_color(command['hue'], cycle)
             command['hue'] = hue_val
             print('set new hue: %s\n' % hue_val)
-
-    def _set_option_delay(self):
-        """
-        Sets the delay from CLI args or default.
-
-        """
-        redis_delay = self.phuey.redis.get('phuey_animation_marquee_delay')
-        if self.phuey.args.delay:
-            self.delay = float(self.phuey.args.delay)
-        elif redis_delay:
-            self.delay = float(redis_delay)
-        else:
-            self.delay = 1
-
-        if self.delay < .01:
-            self.delay = .1
-
-        return True
 
     def _set_new_color(self, current_hue, count):
         """

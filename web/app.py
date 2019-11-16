@@ -28,6 +28,26 @@ def index():
     data['status'] = _get_status()
     return render_template('index.html', **data)
 
+@app.route('/settings')
+def settings_form():
+    data = {}
+    data['global_brightness'] = _get_json_redis('phuey_global_brightness')
+    data['global_delay'] = _get_json_redis('phuey_global_delay')
+    if not data['global_brightness']:
+        data['global_brightness'] = 254
+    return render_template('settings_form.html', **data)
+
+@app.route('/settings-save', methods=['GET', 'POST'])
+def settings_save():
+    if 'global-brightness' in request.form:
+        redis_client.set('phuey_global_brightness', request.form['global-brightness'])
+        print('Saving Key: %s Value:%s' % ('phuey_global_brightness', request.form['global-brightness']))
+    if 'global-delay' in request.form:
+        redis_client.set('phuey_global_delay', request.form['global-delay'])
+        print('Saving Key: %s Value:%s' % ('phuey_global_delay', request.form['global-delay']))        
+
+    return redirect('/')
+
 
 @app.route('/animation-list')
 def animations():

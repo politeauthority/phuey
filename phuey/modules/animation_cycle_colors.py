@@ -5,6 +5,7 @@ Has the options of delay.
 """
 import time
 
+
 class AnimationCycleColors(object):
 
     def __init__(self, Phuey):
@@ -13,7 +14,7 @@ class AnimationCycleColors(object):
         self.delta = {
             'sat': 234,
             'transitiontime': 4,
-            'bri': 254
+            'bri': self.phuey.brightness
         }
 
     def run(self):
@@ -22,7 +23,6 @@ class AnimationCycleColors(object):
 
         """
         self.phuey.capture_initial_state()
-        self._set_delay()
         self.phuey.bridge.set_light(self.phuey.selected_lights, 'on', True)
         print('Press Ctrl+C To exit')
         self.run_primary_loop()
@@ -38,7 +38,7 @@ class AnimationCycleColors(object):
         self.phuey.bridge.set_light(self.phuey.selected_lights, 'bri', 255)
         time.sleep(1)
         hue = 0
-        self.delta['transitiontime'] = self.phuey.delay_to_hue_transition_time(self.delay)
+        self.delta['transitiontime'] = self.phuey.delay_to_hue_transition_time(self.phuey.delay)
         while True:
             if hue >= 65535:
                 hue = 0
@@ -48,23 +48,6 @@ class AnimationCycleColors(object):
             if self.phuey.args.v:
                 print('Set hue %s' % hue)
             hue = hue + 100
-            time.sleep(self.delay)
-
-    def _set_delay(self):
-        """
-        Sets the delay from CLI args or default.
-
-        """
-        redis_delay = self.phuey.redis.get('phuey_animation_cycle_colors_delay')
-        self.delay = 0
-        if self.phuey.args.delay:
-            self.delay = float(self.phuey.args.delay)
-        elif redis_delay:
-            self.delay = float(redis_delay)
-
-        if self.delay > .01:
-            self.delay = .1
-
-        return True
+            time.sleep(self.phuey.delay)
 
 # End File: phuey/phuey/modules/animation_cycle_colors.py
