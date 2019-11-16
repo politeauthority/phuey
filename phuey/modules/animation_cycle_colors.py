@@ -4,10 +4,7 @@ Has the options of delay.
 
 """
 import time
-<<<<<<< HEAD
-import redis
-=======
->>>>>>> 304bf00bdf205165fa97430851e47975c73ab68e
+
 
 class AnimationCycleColors(object):
 

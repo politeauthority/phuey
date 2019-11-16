@@ -16,13 +16,13 @@ class AnimationVapor(object):
             'xy': [0.4176, 0.1868],
             'sat': 241,
             'transitiontime': 50,
-            'bri': 254
+            'bri': self.phuey.brightness
         }
         self.teal = {
             'xy': [0.18, 0.4214],
             'sat': 234,
             'transitiontime': 50,
-            'bri': 254
+            'bri': self.phuey.brightness
         }
         self.vapor_lights = {}
 

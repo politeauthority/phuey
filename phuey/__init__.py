@@ -29,6 +29,7 @@ class Phuey(object):
         self.bridge = Bridge(self.config['bridge_ip'])
         self.selected_lights = self.config['light_ids']
         self.lights = self.bridge.get_light_objects('id')       # All lights in the Hue network
+        self.brightness = self._set_brightness()
         self.initial_state = {}
 
         self.list_lights()
@@ -335,6 +336,12 @@ class Phuey(object):
             data = json.load(config_file)
 
         return data
+
+    def _set_brightness(self):
+        redis_bright = self.redis.get('phuey_global_brightness')
+        if not redis_bright:
+            return 254
+        return int(redis_bright)
 
     def _parse_args(self):
         """
