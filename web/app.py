@@ -5,6 +5,7 @@ from datetime import datetime
 import os
 import signal
 import subprocess
+import sys
 
 
 from flask import Flask
@@ -208,6 +209,9 @@ def _get_status() -> dict:
     return data
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000)
+    port = 5000
+    if len(sys.argv) > 1:
+        port = sys.argv[1]
+    app.run(host="0.0.0.0", port=port)
 
 # End File: phuey/web/app.py
