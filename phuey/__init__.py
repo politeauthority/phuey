@@ -7,13 +7,14 @@ import json
 import os
 from pathlib import Path
 import random
-import time
-
 import sys
+import time
 
 from phue import Bridge
 
 from .modules.animation_vapor import AnimationVapor
+from .modules.animation_cycle_colors import AnimationCycleColors
+from .modules.animation_marquee import AnimationMarquee
 
 __version__ = '0.0.1'
 
@@ -27,6 +28,8 @@ class Phuey(object):
         self.selected_lights = self.config['light_ids']
         self.lights = self.bridge.get_light_objects('id')       # All lights in the Hue network
         self.initial_state = {}
+
+        self.list_lights()
 
     def connect(self):
         """
@@ -66,17 +69,13 @@ class Phuey(object):
         """
         self._print_welcome()
 
-        if self.args.pattern == 'mark-random':
-            print('Running:\tplay_marquee_around_the_room_random_color')
-            self.play_marquee_around_the_room_random_color()
+        if self.args.pattern == 'cycle-color':
+            print('Running:\t Cycle Colors')
+            AnimationCycleColors(self).run()
 
-        elif self.args.pattern == 'mark':
-            print('Running:\tplay_marquee_around_the_room')
-            self.play_marquee_around_the_room()
-
-        elif self.args.pattern == 'breath':
-            print('Running:\tplay_breath')
-            self.play_breath()
+        elif self.args.pattern == 'marquee':
+            print('Running:\t Marquee')
+            AnimationMarquee(self).run()
 
         elif self.args.pattern == 'vapor':
             print('Running:\tplay_vapor')
@@ -84,7 +83,7 @@ class Phuey(object):
 
         elif self.args.pattern == 'list-lights':
             print('Running:\tlist_lights')
-            self.list_lights()
+            self.cli_list_lights()
 
         elif self.args.pattern == 'h':
             print('vapor')
@@ -235,13 +234,24 @@ class Phuey(object):
         self._reset_lights()
         self.bridge.set_light(self.living_room, 'hue', int(self.args.color))
 
-    def list_lights(self):
+    def cli_list_lights(self):
         """
         Lists all lights currently connected to the hue bridge.
 
         """
         for light_id, light in self.bridge.get_api()['lights'].items():
             print("%s -\t%s" % (light_id, light['name']))
+
+    def list_lights(self):
+        """
+        Lists all lights currently connected to the hue bridge, for non CLI usage
+
+        """
+        self.light_digest = {}
+        for light_id, light in self.bridge.get_api()['lights'].items():
+            self.light_digest[int(light_id)] = light['name']
+
+        return self.light_digest
 
     def handle_exit(self):
         """
@@ -290,6 +300,17 @@ class Phuey(object):
 
         return True
 
+    def delay_to_hue_transition_time(self, delay) -> int:
+        """
+        Hue 'transitiontime' is based on milliseconds, but takes the milliseconds / 100.
+        IE 400 milliseconds needs to be sent to the API as 4.
+        This function takes seconds (fractional seconds if need be) and translates them to something
+        hue's API will accept.
+
+        """
+        hue_transition = int((delay * 1000) / 100)
+        return hue_transition
+
     def _load_config(self):
         """
         Loads a configuration file from ~/.phuey/config.json or the --config argument
@@ -326,41 +347,43 @@ class Phuey(object):
             nargs='?',
             default='',
             help="")
+
         parser.add_argument(
             "color",
             nargs='?',
             default='',
             help=".")
+
         parser.add_argument(
             "--delay",
             nargs='?',
             default=False,
             help="Sets the delay between animations shifts for some animations.")
-        parser.add_argument(
-            "--bright",
-            nargs='?',
-            default=False,
-            help="Override brightness.")
+
         parser.add_argument(
             "--no-restore",
             default=False,
-            help="Override brightness.",
+            help="Restores lights to their previous settings after animation stopped.",
             action='store_true')
+
         parser.add_argument(
             "--config",
             nargs='?',
             default=False,
             help="Location of the config file to use.")
+
         parser.add_argument(
             "-v",
-            nargs='?',
             default=False,
+            action='store_true',
             help="Run script in high verbosity mode.")
 
         args = parser.parse_args()
         return args
 
     def _print_welcome(self):
+        if not self.args.v:
+            return
         phuey_txt = """
  ____  __ __  __ __    ___  __ __
 |    \|  |  ||  |  |  /  _]|  |  |
