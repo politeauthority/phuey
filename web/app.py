@@ -46,8 +46,9 @@ def api_animate(animation):
         kill_data = kill_animation()
         data.update(kill_data)
 
+    options = _format_options(request.args)
     data['status'] = 'success'
-    data = run_animation(animation)
+    data = run_animation(animation, options)
     return jsonify(data)
 
 
@@ -173,6 +174,20 @@ def _get_decoded_dict(the_dict: dict) -> dict:
 
     return new_dict
 
+
+def _format_options(raw_options) -> list:
+    if not raw_options:
+        return []
+
+    options = []
+    if 'delay' in raw_options:
+        options.append('--delay=%s' % raw_options['delay'])
+    if 'verbose' in raw_options:
+        options.append('-v')
+    if 'no-restore' in raw_options:
+        options.append('--no-restore')
+
+    return options
 
 def _get_status() -> dict:
     data = {
