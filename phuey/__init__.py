@@ -16,6 +16,7 @@ from phue import Bridge
 from .modules.animation_vapor import AnimationVapor
 from .modules.animation_cycle_colors import AnimationCycleColors
 from .modules.animation_marquee import AnimationMarquee
+from .modules.animation_breathe import AnimationBreathe
 
 __version__ = '0.0.1'
 
@@ -84,6 +85,11 @@ class Phuey(object):
         elif self.args.pattern == 'vapor':
             print('Running:\tplay_vapor')
             AnimationVapor(self).run()
+
+        elif self.args.pattern == 'breathe':
+            print('Running:\t Breathe')
+            AnimationBreathe(self).run()
+
 
         elif self.args.pattern == 'list-lights':
             print('Running:\tlist_lights')
