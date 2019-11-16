@@ -10,7 +10,6 @@ class AnimationMarquee(object):
 
     def __init__(self, Phuey):
         self.phuey = Phuey
-        self.redis = redis.Redis()
         self.stored_options = ['phuey_animation_marquee_delay']
         self.delta = {
             'sat': 234,
@@ -87,7 +86,7 @@ class AnimationMarquee(object):
         Sets the delay from CLI args or default.
 
         """
-        redis_delay = self.redis.get('phuey_animation_marquee_delay')
+        redis_delay = self.phuey.redis.get('phuey_animation_marquee_delay')
         if self.phuey.args.delay:
             self.delay = float(self.phuey.args.delay)
         elif redis_delay:

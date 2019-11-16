@@ -31,7 +31,7 @@ class AnimationVapor(object):
         Kick off for the animation.
 
         """
-        self._set_delay()
+        self._set_option_delay()
         self.phuey.capture_initial_state()
         self.phuey.reset_lights()
         self.phuey.bridge.set_light(self.phuey.selected_lights, 'on', True)
@@ -75,17 +75,21 @@ class AnimationVapor(object):
         except KeyboardInterrupt:
             self.phuey.handle_exit()
 
-    def _set_delay(self):
+    def _set_option_delay(self):
         """
         Sets the delay from CLI args or default.
 
         """
+        redis_delay = self.phuey.redis.get('phuey_animation_vapor_delay')
         if self.phuey.args.delay:
             self.delay = float(self.phuey.args.delay)
-            if self.delay < 2:
-                self.delay = 3
+        elif redis_delay:
+            self.delay = float(redis_delay)
         else:
-            self.delay = 5
+            self.delay = 1
+
+        if self.delay < .01:
+            self.delay = 3
 
         return True
 

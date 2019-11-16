@@ -10,6 +10,7 @@ import random
 import sys
 import time
 
+import redis
 from phue import Bridge
 
 from .modules.animation_vapor import AnimationVapor
@@ -23,6 +24,7 @@ class Phuey(object):
 
     def __init__(self, animation=None):
         self.args = self._parse_args()
+        self.redis = redis.Redis()
         self.config = self._load_config()
         self.bridge = Bridge(self.config['bridge_ip'])
         self.selected_lights = self.config['light_ids']

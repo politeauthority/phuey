@@ -4,13 +4,15 @@ Has the options of delay.
 
 """
 import time
+<<<<<<< HEAD
 import redis
+=======
+>>>>>>> 304bf00bdf205165fa97430851e47975c73ab68e
 
 class AnimationCycleColors(object):
 
     def __init__(self, Phuey):
         self.phuey = Phuey
-        self.redis = redis.Redis()
         self.stored_options = ['phuey_animation_cycle_color_delay']
         self.delta = {
             'sat': 234,
@@ -57,7 +59,7 @@ class AnimationCycleColors(object):
         Sets the delay from CLI args or default.
 
         """
-        redis_delay = self.redis.get('phuey_animation_cycle_colors_delay')
+        redis_delay = self.phuey.redis.get('phuey_animation_cycle_colors_delay')
         self.delay = 0
         if self.phuey.args.delay:
             self.delay = float(self.phuey.args.delay)
