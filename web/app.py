@@ -5,6 +5,7 @@ from datetime import datetime
 import os
 import signal
 import subprocess
+import sys
 
 
 from flask import Flask
@@ -26,6 +27,13 @@ def index():
     data = {}
     data['status'] = _get_status()
     return render_template('index.html', **data)
+
+
+@app.route('/animations/<animation>')
+def animations(animation=None):
+    data = {}
+    if not animation:
+        return render_template('animations.html', **data)
 
 
 @app.route('/api/animate/<animation>', methods=['GET', 'POST'])
@@ -81,7 +89,7 @@ def run_animation(animation, options=[]):
 
     """
     options.append('--no-restore')
-    options.append('--delay=.2')
+    # options.append('--delay=.2')
     start_cmd = [PHUEY_CLI_APPLICATION, animation] + options
     print('Running: %s' % start_cmd)
     process = subprocess.Popen(start_cmd)
@@ -197,10 +205,13 @@ def _get_status() -> dict:
     if data['status'] == 'running':
         data['start'] = _get_json_redis('phuey_start')
         data['pid'] = _get_json_redis('phuey_pid')
-    print(data)
+        data['options'] = _get_json_redis('phuey_options')
     return data
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000)
+    port = 5000
+    if len(sys.argv) > 1:
+        port = sys.argv[1]
+    app.run(host="0.0.0.0", port=port)
 
 # End File: phuey/web/app.py
