@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 
-from flask import Flask
+from flask import Flask, redirect
 from flask import jsonify
 from flask import request
 from flask import render_template
@@ -29,11 +29,30 @@ def index():
     return render_template('index.html', **data)
 
 
-@app.route('/animations/<animation>')
-def animations(animation=None):
+@app.route('/animation-list')
+def animations():
     data = {}
-    if not animation:
-        return render_template('animations.html', **data)
+    return render_template('animations.html', **data)
+
+
+@app.route('/animation-configure/<animation>')
+def animation_configure(animation):
+    data = {
+        'name': animation
+    }
+    return render_template('animation_configure.html', **data)
+
+@app.route('/animation-configure-save', methods=['GET', 'POST'])
+def animation_configure_save():
+    animation_name = request.form['animate-name']
+    animation_name = animation_name.replace('-', '_')
+    key_prefix = 'phuey_animation_%s' % animation_name
+    if 'animate-delay' in request.form:
+        redis_key = '%s_delay' % key_prefix
+        redis_client.set(redis_key, request.form['animate-delay'])
+        print('Saving Key: %s Value:%s' % (redis_key, request.form['animate-delay']))
+
+    return redirect('/')
 
 
 @app.route('/api/animate/<animation>', methods=['GET', 'POST'])
