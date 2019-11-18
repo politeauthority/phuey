@@ -19,6 +19,8 @@ import werkzeug
 PHUEY_CLI_APPLICATION = '/usr/local/bin/phuey'
 
 app = Flask(__name__)
+
+# @todo: make config driven, duh?
 app.config['REDIS_URL'] = "redis://:@192.168.50.10:6379/0"
 
 redis_client = FlaskRedis(app)
@@ -149,12 +151,12 @@ def api_animate(animation) -> flask.wrappers.Response:
     options = _format_options(request.args)
     data['status'] = 'success'
     data = run_animation(animation, options)
-    print(type(jsonify(data)))
+
     return jsonify(data)
 
 
 @app.route('/api/stop', methods=['GET', 'POST'])
-def api_stop():
+def api_stop() -> flask.wrappers.Response:
     """
     Stops the current running animation.
 
@@ -163,26 +165,27 @@ def api_stop():
     data['animation'] = 'vapor'
     kill_data = kill_animation()
     data.update(kill_data)
+
     return jsonify(data)
 
 
 @app.route('/api/status', methods=['GET', 'POST'])
-def api_status():
+def api_status() -> flask.wrappers.Response:
     """
     Gets the current status of Phuey, including status, current animation, start time and more.
 
     """
     data = _get_status()
+
     return jsonify(data)
 
 
-def run_animation(animation, options=[]):
+def run_animation(animation: str, options: list=[]) -> dict:
     """
     Verifies and runs an animation, setting the appropriate keys in redis.
 
     """
     options.append('--no-restore')
-    # options.append('--delay=.2')
     start_cmd = [PHUEY_CLI_APPLICATION, animation] + options
     print('Running: %s' % start_cmd)
     process = subprocess.Popen(start_cmd)
@@ -206,7 +209,8 @@ def run_animation(animation, options=[]):
 
 def kill_animation() -> dict:
     """
-    Kills an animation based on the pid found in redis key phuey_pid
+    Kills an animation based on the pid found in redis key phuey_pid and returns the relevant status
+    information about the app.
 
     """
     data = {}    
@@ -276,7 +280,11 @@ def _get_decoded_dict(the_dict: dict) -> dict:
     return new_dict
 
 
-def _format_options(raw_options) -> list:
+def _format_options(raw_options: list) -> list:
+    """
+    Forms options to be sent to to the CLI phuey app.
+
+    """
     if not raw_options:
         return []
 
@@ -291,6 +299,10 @@ def _format_options(raw_options) -> list:
     return options
 
 def _get_status() -> dict:
+    """
+    Pulls status values out of redis databases and organizes them in a dict
+
+    """
     data = {
         'status': _get_json_redis('phuey_status'),
         'animation': _get_json_redis('phuey_animation')
@@ -299,6 +311,7 @@ def _get_status() -> dict:
         data['start'] = _get_json_redis('phuey_start')
         data['pid'] = _get_json_redis('phuey_pid')
         data['options'] = _get_json_redis('phuey_options')
+
     return data
 
 if __name__ == '__main__':

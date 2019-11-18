@@ -109,7 +109,4 @@ class AnimationMarquee(object):
 
         return rand_hue
 
-
-
-
 # End File: phuey/phuey/modules/animation_marquee.py
