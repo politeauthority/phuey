@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row">
+  <div class="col-lg-6">
+    <h3>Current Status</h3>
+    {% if status['status'] == 'running' %}
+      <p><b>Animation:</b> {{status['animation']}}</p>
+      <p><b>Started:</b> {{status['start']}}</p>
+      <p><button id="animation-stop">Stop</button></p>
+    {%else%}
+      <p>Phuey is not currently running an animation</p>
+    {%endif%}
+
+  </div>
+  <div class="col-lg-6">
+    <h3>Animations</h3>
+    <ul>
+      <li>Vapor Wave <button value="vapor" type="button" class="animation-request btn btn-primary">Run</button></li>
+      <li>Cycle Color <button value="cycle-color" type="button" class="animation-request btn btn-primary">Run</button></li>
+      <li>Marquee <button value="marquee" type="button" class="animation-request btn btn-primary">Run</button></li>
+
+    </ul>
+  </div>
+</div>
+{%endblock%}

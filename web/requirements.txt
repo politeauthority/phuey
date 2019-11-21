@@ -1,0 +1,2 @@
+Flask==1.1.1
+flask-redis==0.4.0

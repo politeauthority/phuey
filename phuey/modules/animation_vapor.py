@@ -16,13 +16,13 @@ class AnimationVapor(object):
             'xy': [0.4176, 0.1868],
             'sat': 241,
             'transitiontime': 50,
-            'bri': 254
+            'bri': self.phuey.brightness
         }
         self.teal = {
             'xy': [0.18, 0.4214],
             'sat': 234,
             'transitiontime': 50,
-            'bri': 254
+            'bri': self.phuey.brightness
         }
         self.vapor_lights = {}
 
@@ -31,7 +31,6 @@ class AnimationVapor(object):
         Kick off for the animation.
 
         """
-        self._set_delay()
         self.phuey.capture_initial_state()
         self.phuey.reset_lights()
         self.phuey.bridge.set_light(self.phuey.selected_lights, 'on', True)
@@ -71,22 +70,8 @@ class AnimationVapor(object):
                     else:
                         self.phuey.bridge.set_light(light_id, 'xy', self.pink['xy'])
                         self.vapor_lights[light_id] = 'pink'
-                time.sleep(self.delay)
+                time.sleep(self.phuey.delay)
         except KeyboardInterrupt:
             self.phuey.handle_exit()
-
-    def _set_delay(self):
-        """
-        Sets the delay from CLI args or default.
-
-        """
-        if self.phuey.args.delay:
-            self.phuey.delay = int(self.phuey.args.delay)
-            if self.delay > 2:
-                self.delay = 2
-        else:
-            self.delay = 5
-
-        return True
 
 # End File: phuey/phuey/modules/animation_vapor.py
