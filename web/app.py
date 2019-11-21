@@ -8,62 +8,63 @@ import subprocess
 import sys
 
 
+import flask
 from flask import Flask, redirect
 from flask import jsonify
 from flask import request
 from flask import render_template
 from flask_redis import FlaskRedis
+import werkzeug
 
 PHUEY_CLI_APPLICATION = '/usr/local/bin/phuey'
 
 app = Flask(__name__)
+
+# @todo: make config driven, duh?
 app.config['REDIS_URL'] = "redis://:@192.168.50.10:6379/0"
 
 redis_client = FlaskRedis(app)
 
 
 @app.route('/')
-def index():
+def index() -> str:
+    """
+    App home page.
+
+    """
     data = {}
     data['status'] = _get_status()
     return render_template('index.html', **data)
 
-@app.route('/settings')
-def settings_form():
-    data = {}
-    data['global_brightness'] = _get_json_redis('phuey_global_brightness')
-    data['global_delay'] = _get_json_redis('phuey_global_delay')
-    if not data['global_brightness']:
-        data['global_brightness'] = 254
-    return render_template('settings_form.html', **data)
-
-@app.route('/settings-save', methods=['GET', 'POST'])
-def settings_save():
-    if 'global-brightness' in request.form:
-        redis_client.set('phuey_global_brightness', request.form['global-brightness'])
-        print('Saving Key: %s Value:%s' % ('phuey_global_brightness', request.form['global-brightness']))
-    if 'global-delay' in request.form:
-        redis_client.set('phuey_global_delay', request.form['global-delay'])
-        print('Saving Key: %s Value:%s' % ('phuey_global_delay', request.form['global-delay']))        
-
-    return redirect('/')
-
 
 @app.route('/animation-list')
-def animations():
+def animations() -> str:
+    """
+    Animations roster page.
+
+    """
     data = {}
     return render_template('animations.html', **data)
 
 
 @app.route('/animation-configure/<animation>')
-def animation_configure(animation):
+def animation_configure(animation) -> str:
+    """
+    Animation configure form for a single animation and its options.
+
+    """
     data = {
         'name': animation
     }
     return render_template('animation_configure.html', **data)
 
+
 @app.route('/animation-configure-save', methods=['GET', 'POST'])
-def animation_configure_save():
+def animation_configure_save() -> werkzeug.wrappers.response.Response:
+    """
+    Web route to save global app settings into redis.
+
+    """
     animation_name = request.form['animate-name']
     animation_name = animation_name.replace('-', '_')
     key_prefix = 'phuey_animation_%s' % animation_name
@@ -75,10 +76,64 @@ def animation_configure_save():
     return redirect('/')
 
 
-@app.route('/api/animate/<animation>', methods=['GET', 'POST'])
-def api_animate(animation):
+@app.route('/status')
+def status() -> str:
     """
-    Runs a selected animation indefinitely.
+    Phuey application status page.
+
+    """
+    data = {
+        'status': _get_status()
+    }
+
+    return render_template('status.html', **data)
+
+
+@app.route('/settings')
+def settings_form() -> str:
+    """
+    Web route to show global app settings and edit them.
+
+    """
+    data = {}
+    data['global_brightness'] = _get_json_redis('phuey_global_brightness')
+    data['global_delay'] = _get_json_redis('phuey_global_delay')
+
+    # If nothing currently set for global brightness, set it to the hue max.
+    if not data['global_brightness']:
+        data['global_brightness'] = 254
+
+    return render_template('settings_form.html', **data)
+
+
+@app.route('/settings-save', methods=['GET', 'POST'])
+def settings_save() -> werkzeug.wrappers.response.Response:
+    """
+    Web route to save global app settings into redis.
+
+    """
+    if 'global-brightness' in request.form:
+        redis_client.set('phuey_global_brightness', request.form['global-brightness'])
+        print('Saving Key: %s Value:%s' % ('phuey_global_brightness', request.form['global-brightness']))
+    if 'global-delay' in request.form:
+        redis_client.set('phuey_global_delay', request.form['global-delay'])
+        print('Saving Key: %s Value:%s' % ('phuey_global_delay', request.form['global-delay']))        
+
+    return redirect('/')
+
+
+@app.route('/about')
+def about() -> str:
+    """
+    Phuey about.
+
+    """
+    return render_template('about.html')
+
+@app.route('/api/animate/<animation>', methods=['GET', 'POST'])
+def api_animate(animation) -> flask.wrappers.Response:
+    """
+    API route to runs a requested animation indefinitely.
 
     """
     data = {}
@@ -96,11 +151,12 @@ def api_animate(animation):
     options = _format_options(request.args)
     data['status'] = 'success'
     data = run_animation(animation, options)
+
     return jsonify(data)
 
 
 @app.route('/api/stop', methods=['GET', 'POST'])
-def api_stop():
+def api_stop() -> flask.wrappers.Response:
     """
     Stops the current running animation.
 
@@ -109,26 +165,27 @@ def api_stop():
     data['animation'] = 'vapor'
     kill_data = kill_animation()
     data.update(kill_data)
+
     return jsonify(data)
 
 
 @app.route('/api/status', methods=['GET', 'POST'])
-def api_status():
+def api_status() -> flask.wrappers.Response:
     """
     Gets the current status of Phuey, including status, current animation, start time and more.
 
     """
     data = _get_status()
+
     return jsonify(data)
 
 
-def run_animation(animation, options=[]):
+def run_animation(animation: str, options: list=[]) -> dict:
     """
     Verifies and runs an animation, setting the appropriate keys in redis.
 
     """
     options.append('--no-restore')
-    # options.append('--delay=.2')
     start_cmd = [PHUEY_CLI_APPLICATION, animation] + options
     print('Running: %s' % start_cmd)
     process = subprocess.Popen(start_cmd)
@@ -152,7 +209,8 @@ def run_animation(animation, options=[]):
 
 def kill_animation() -> dict:
     """
-    Kills an animation based on the pid found in redis key phuey_pid
+    Kills an animation based on the pid found in redis key phuey_pid and returns the relevant status
+    information about the app.
 
     """
     data = {}    
@@ -222,7 +280,11 @@ def _get_decoded_dict(the_dict: dict) -> dict:
     return new_dict
 
 
-def _format_options(raw_options) -> list:
+def _format_options(raw_options: list) -> list:
+    """
+    Forms options to be sent to to the CLI phuey app.
+
+    """
     if not raw_options:
         return []
 
@@ -237,6 +299,10 @@ def _format_options(raw_options) -> list:
     return options
 
 def _get_status() -> dict:
+    """
+    Pulls status values out of redis databases and organizes them in a dict
+
+    """
     data = {
         'status': _get_json_redis('phuey_status'),
         'animation': _get_json_redis('phuey_animation')
@@ -245,6 +311,7 @@ def _get_status() -> dict:
         data['start'] = _get_json_redis('phuey_start')
         data['pid'] = _get_json_redis('phuey_pid')
         data['options'] = _get_json_redis('phuey_options')
+
     return data
 
 if __name__ == '__main__':

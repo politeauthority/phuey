@@ -5,7 +5,7 @@
     <h3>Current Status</h3>
     {% if status['status'] == 'running' %}
       <p><b>Animation:</b> {{status['animation']}}</p>
-      <p><b>Animation:</b> {{status['start']}}</p>
+      <p><b>Started:</b> {{status['start']}}</p>
       <p><button id="animation-stop">Stop</button></p>
     {%else%}
       <p>Phuey is not currently running an animation</p>
