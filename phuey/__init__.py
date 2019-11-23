@@ -120,6 +120,17 @@ class Phuey(object):
         }
         self.bridge.set_light(self.selected_lights, command)
 
+    def list_lights(self):
+        """
+        Lists all lights currently connected to the hue bridge, for non CLI usage
+
+        """
+        self.light_digest = {}
+        for light_id, light in self.bridge.get_api()['lights'].items():
+            self.light_digest[int(light_id)] = light['name']
+
+        return self.light_digest
+
     def handle_exit(self):
         """
         Handles exiting with lighting restore and proper exit codes.
