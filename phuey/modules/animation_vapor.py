@@ -12,6 +12,10 @@ class AnimationVapor(object):
 
     def __init__(self, Phuey):
         self.phuey = Phuey
+        self.phuey.set_global_delay('phuey_animation_vapor_delay')
+        self.phuey.set_global_brightness('phuey_animation_vapor_brightness')
+        self.phuey.print_args()
+
         self.pink = {
             'xy': [0.4176, 0.1868],
             'sat': 241,
@@ -25,7 +29,6 @@ class AnimationVapor(object):
             'bri': self.phuey.brightness
         }
         self.vapor_lights = {}
-        self.phuey.set_global_delay('phuey_animation_vapor_delay')
 
 
     def run(self):

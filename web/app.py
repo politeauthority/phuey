@@ -101,6 +101,7 @@ def settings_form() -> str:
     data = {}
     data['global_brightness'] = _get_json_redis('phuey_global_brightness')
     data['global_delay'] = _get_json_redis('phuey_global_delay')
+    data['global_lights'] = _get_json_redis('phuey_light_ids')
 
     # If nothing currently set for global brightness, set it to the hue max.
     if not data['global_brightness']:
@@ -121,6 +122,9 @@ def settings_save() -> werkzeug.wrappers.response.Response:
     if 'global-delay' in request.form:
         redis_client.set('phuey_global_delay', request.form['global-delay'])
         print('Saving Key: %s Value:%s' % ('phuey_global_delay', request.form['global-delay']))
+    if 'global-light-ids' in request.form:
+        redis_client.set('phuey_light_ids', request.form['global-light-ids'])
+        print('Saving Key: %s Value:%s' % ('phuey_light_ids', request.form['global-light-ids']))
 
     return redirect('/')
 

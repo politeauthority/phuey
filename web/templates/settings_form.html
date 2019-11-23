@@ -6,14 +6,20 @@
     <form action="/settings-save" method="POST">
       <div class="form-group">
         <label for="delay">Brightness</label>
-        <input name="global-brightness" class="form-control" id="brightness" aria-describedby="brightnessHelp" value="{{global_brightness}}">
+        <input name="global-brightness" class="form-control" id="setting-brightness" aria-describedby="brightnessHelp" value="{{global_brightness}}">
         <small id="brightnessHelp" class="form-text text-muted">Sets brightness globally for all animations, 0-254.</small>
       </div>
       <div class="form-group">
         <label for="delay">Delay</label>
-        <input name="global-delay" class="form-control" id="delay" aria-describedby="delayHelp" value="{{global_delay}}">
-        <small id="delayHelp" class="form-text text-muted">Sets the global delay of all animations</small>
+        <input name="global-delay" class="form-control" id="setting-delay" aria-describedby="delayHelpDelay" value="{{global_delay}}">
+        <small id="delayHelpDelay" class="form-text text-muted">Sets the global delay of all animations</small>
       </div>
+      <div class="form-group">
+        <label for="delay">Lights</label>
+        <input name="global-light-ids" class="form-control" id="setting-lights" aria-describedby="delayHelpLights" {% if not global_lights %}placeholder=""{%else%}value="{{global_lights}}"{%endif%}>
+        <small id="delayHelpLights" class="form-text text-muted">Hue light ids, comma separated, to include in animation. In somewhat linear order for animations.</small>
+      </div>
+
 
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>

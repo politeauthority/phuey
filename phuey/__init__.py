@@ -20,6 +20,7 @@ from .modules.animation_marquee import AnimationMarquee
 __version__ = '0.0.1'
 
 
+
 class Phuey(object):
 
     def __init__(self, animation=None):
@@ -27,9 +28,9 @@ class Phuey(object):
         self.redis = redis.Redis()
         self.config = self._load_config()
         self.bridge = Bridge(self.config['bridge_ip'])
-        self.selected_lights = self.config['light_ids']
+        self.set_selected_lights()
         self.lights = self.bridge.get_light_objects('id')       # All lights in the Hue network
-        self.brightness = self._set_global_brightness()
+        # self.brightness = self._set_global_brightness()
         # self.delay = self._set_global_delay()
         self.initial_state = {}
 
@@ -346,17 +347,24 @@ class Phuey(object):
 
         return data
 
-    def _set_global_brightness(self) -> int:
+    def set_global_brightness(self, animation: str=None) -> int:
         """
         Sets global baseline brightness.
         Attempts to grab setting from redis key `phuey_global_brightness`, but if not available sets
         global brightness to 254, or full bore.
 
         """
-        redis_bright = self.redis.get('phuey_global_brightness')
-        if not redis_bright:
-            return 254
-        return int(redis_bright)
+        default = 254
+        redis_bright = self._get_global_or_specific_generic_animation_option('brightness', animation)
+        if redis_bright:
+            brightness = redis_bright
+        else:
+            brightness = default
+
+        self.brightness = brightness
+
+
+        return brightness
 
     def set_global_delay(self, redis_key: str=None) -> float:
         """
@@ -383,9 +391,79 @@ class Phuey(object):
             delay = 3
 
         self.delay = delay
-        if self.args.v:
-            print('\nDELAY: %s\n\n' % self.delay)
+
         return True
+
+    def _get_global_or_specific_generic_animation_option(self, option_type, animation: str=''):
+        """
+        """
+        redis_key = 'phuey_animation_%s' % option_type
+        if animation:
+            redis_key = '%s_%s' % (redis_key, animation)
+            redis_result = self._get_str_redis(redis_key)
+            if redis_result:
+                return redis_result
+
+        redis_key = redis_key.replace('animation', 'global')
+        redis_global = self._get_str_redis(redis_key)
+        if redis_global:
+            return redis_global
+
+        return None
+
+    def set_selected_lights(self) -> list:
+        """
+        """
+        self.selected_lights = None
+        selected_lights = None
+        if 'light_ids' in self.config:
+            self.selected_lights = self.config['light_ids']
+            if self.args.v:
+                print('Settings lights on file config %s:' % selected_lights)
+        else:
+            redis_lights = self._get_str_redis('phuey_light_ids')
+            if redis_lights:
+                redis_lights = redis_lights.replace(' ', '')
+                if ',' in redis_lights:
+                    redis_lights = redis_lights.split(',')
+                else:
+                    redis_lights = [redis_lights]
+
+                clean_lights = []
+                for light in redis_lights:
+                    if light.isdigit():
+                        clean_lights.append(int(light))
+                    else:
+                        print('cannot interperate %s as a light id' % light)
+                redis_lights = clean_lights
+
+            selected_lights = redis_lights
+            if self.args.v:
+                print('Settings lights on redis config %s:' % selected_lights)
+
+        self.selected_lights = selected_lights
+        if not self.selected_lights:
+            print('ERROR NO SELECTED LIGHTS')
+            exit(1)
+
+        return self.selected_lights
+
+    def _get_str_redis(self, key: str) -> str:
+        """
+        Gets a JSONable string from redis.
+
+        """
+        value = self.redis.get(key)
+        if not value:
+            return None
+        return value.decode('ascii')
+
+
+    def print_args(self):
+        if self.args.v:
+            print('\nDELAY: %s' % self.delay)
+        if self.args.v:
+            print('\nBRIGHTNESS: %s\n\n' % self.brightness)
 
     def _parse_args(self):
         """
