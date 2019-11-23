@@ -41,7 +41,7 @@ def index() -> str:
 def animation_list() -> str:
     """
     Registered animation roster page.
-
+ 
     """
     data = {}
     return render_template('animations.html', **data)
@@ -59,7 +59,6 @@ def animation_configure(animation) -> str:
         'animation_name': animation,
         'animation_delay': animation_delay
     }
-
     return render_template('animation_configure.html', **data)
 
 
@@ -125,7 +124,6 @@ def settings_save() -> werkzeug.wrappers.response.Response:
     if 'global-light-ids' in request.form:
         redis_client.set('phuey_light_ids', request.form['global-light-ids'])
         print('Saving Key: %s Value:%s' % ('phuey_light_ids', request.form['global-light-ids']))
-
     return redirect('/')
 
 

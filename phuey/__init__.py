@@ -31,8 +31,6 @@ class Phuey(object):
         self.bridge = Bridge(self.config['bridge_ip'])
         self.set_selected_lights()
         self.lights = self.bridge.get_light_objects('id')       # All lights in the Hue network
-        # self.brightness = self._set_global_brightness()
-        # self.delay = self._set_global_delay()
         self.initial_state = {}
 
         self.list_lights()
@@ -52,21 +50,6 @@ class Phuey(object):
         for light_id, light in self.lights.items():
             if light.light_id in self.selected_lights:
                 print("%s\t%s" % (light_id, light.name))
-
-    def reset_lights(self):
-        """
-        Sets all living room lights off, then turns red
-
-        """
-        command = {
-            'hue': 0,
-            'sat': 0,
-            'bri': 0,
-            'transitiontime': 0,
-            'on': False
-
-        }
-        self.bridge.set_light(self.selected_lights, command)
 
     def run(self):
         """
@@ -107,143 +90,6 @@ class Phuey(object):
             print("No playbook for: %s" % self.args.pattern)
             exit(1)
 
-    def play_random_color_play(self):
-        """
-        Grabs random colors and sets all light to that color, then changes.
-
-        """
-        living_room = [11, 12, 22, 23]
-
-        self.bridge.set_light(living_room, 'bri', 0)
-        time.sleep(2)
-        self.bridge.set_light(living_room, 'bri', 255)
-        time.sleep(2)
-        while True:
-            for light_id in living_room:
-                rand_x = random.random()
-                rand_y = random.random()
-                self.bridge.set_light(
-                    living_room,
-                    'xy',
-                    [
-                        rand_x,
-                        rand_y],
-                    transitiontime=100)
-            print('%s\t%s' % (rand_x, rand_y))
-            time.sleep(1)
-
-    def play_marquee_around_the_room_random_color(self):
-        """
-        Cycles through lights IN ORDER to turn on one in at a random color
-        :: CLI TRIGGER: mark-random
-
-        """
-        self._reset_lights()
-        self.bridge.set_light(self.living_room, 'on', True)
-
-        colors = [0, 10000, 20000, 30000, 40000, 50000]
-        count = 0
-        active_light = self.living_room[count]
-
-        while True:
-            # print('cycle %s' % count)
-            the_color = colors[random.randint(0, len(colors) - 1)]
-            for light_id in self.living_room:
-                if light_id == active_light:
-                    print("%s\t%s" % (light_id, self.lights[light_id].name))
-                    self.bridge.set_light(light_id, 'on', True)
-                    self.bridge.set_light(
-                        light_id,
-                        'hue',
-                        the_color,
-                        transitiontime=100)
-                    self.bridge.set_light(light_id, 'bri', 255)
-                else:
-                    self.bridge.set_light(light_id, 'on', False)
-
-            count += 1
-            if count > len(self.living_room) - 1:
-                count = 0
-
-            active_light = self.living_room[count]
-            time.sleep(.5)
-
-    def play_marquee_around_the_room(self):
-        """
-        Cycles through lights in order with one color until cycle is complete, then changes color
-        :: CLI TRIGGER: mark
-
-        """
-        self._reset_lights()
-        self.bridge.set_light(self.living_room, 'on', True)
-
-        colors = [0, 10000, 20000, 30000, 40000, 50000]
-        count = 0
-        color_count = 0
-        active_light = self.living_room[count]
-
-        while True:
-            # print('cycle %s' % count)
-            # the_color = colors[random.randint(0, len(colors) - 1)]
-            for light_id in self.living_room:
-                cmd = {
-                    'on': True,
-                    'hue': colors[color_count],
-                    'bri': 254,
-                    'transitiontime': 100
-                }
-                if light_id == active_light:
-                    print("%s\t%s\t%s" % (
-                        light_id,
-                        self.lights[light_id].name,
-                        colors[color_count]))
-                    self.bridge.set_light(light_id, cmd)
-
-                else:
-                    self.bridge.set_light(light_id, 'on', False)
-
-            count += 1
-            if count > len(self.living_room) - 1:
-                count = 0
-
-                # Change color after all lights have run the color
-                color_count += 1
-                if color_count > len(colors) - 1:
-                    color_count = 0
-
-            active_light = self.living_room[count]
-            time.sleep(2)
-
-    def play_breath(self):
-        """
-        Cycles through lights IN ORDER to turn on one in at a random color
-        :: CLI TRIGGER: breath
-
-        """
-        self._reset_lights()
-        self.bridge.set_light(self.living_room, 'on', True)
-
-        print('color set')
-        self.bridge.set_light(self.living_room, 'hue', 50000)
-        while True:
-            self.bridge.set_light(self.living_room, 'on', True)
-            self.bridge.set_light(self.living_room, 'bri', 254, transitiontime=1000)
-            print('bright set')
-            time.sleep(5)
-            self.bridge.set_light(self.living_room, 'bri', 0, transitiontime=100)
-            self.bridge.set_light(self.living_room, 'on', False)
-            print('dim set\n')
-            time.sleep(3)
-
-    def play_set_color(self):
-        """
-        Sets all living room lights to <color>
-        :: CLI TRIGGER: color <color>
-
-        """
-        self._reset_lights()
-        self.bridge.set_light(self.living_room, 'hue', int(self.args.color))
-
     def cli_list_lights(self):
         """
         Lists all lights currently connected to the hue bridge.
@@ -251,8 +97,6 @@ class Phuey(object):
         """
         for light_id, light in self.bridge.get_api()['lights'].items():
             print("%s -\t%s" % (light_id, light['name']))
-            print(light)
-            exit()
 
     def list_lights(self):
         """
@@ -261,6 +105,42 @@ class Phuey(object):
         """
         self.light_digest = {}
         for light_id, light in self.bridge.get_api()['lights'].items():
+            self.light_digest[int(light_id)] = light['name']
+
+        return self.light_digest
+
+    def reset_lights(self):
+        """
+        Sets all living room lights off, then turns red
+
+        """
+        command = {
+            'hue': 0,
+            'sat': 0,
+            'bri': 0,
+            'transitiontime': 0,
+            'on': False
+
+        }
+        self.bridge.set_light(self.selected_lights, command)
+
+    def cli_list_lights(self):
+        """
+        Lists all lights currently connected to the hue bridge, for non CLI usage
+
+        """
+        self.light_digest = {}
+        for light_id, light in self.bridge.get_api()['lights'].items():
+            print("%s -\t%s" % (light_id, light['name']))
+
+    def list_lights(self):
+        """
+        Lists all lights currently connected to the hue bridge, for non CLI usage
+
+        """
+        self.light_digest = {}
+        for light_id, light in self.bridge.get_api()['lights'].items():
+
             self.light_digest[int(light_id)] = light['name']
 
         return self.light_digest
@@ -382,7 +262,6 @@ class Phuey(object):
 
         """
         delay = 0
-
         # Attempt to grab the requested animation delay
         if redis_key:
             redis_delay = self.redis.get(redis_key)
@@ -396,7 +275,6 @@ class Phuey(object):
 
         if delay < .01:
             delay = 3
-
         self.delay = delay
 
         return True
