@@ -16,6 +16,7 @@ from phue import Bridge
 from .modules.animation_vapor import AnimationVapor
 from .modules.animation_cycle_colors import AnimationCycleColors
 from .modules.animation_marquee import AnimationMarquee
+from .modules.animation_popo import AnimationPopo
 
 __version__ = '0.0.1'
 
@@ -85,6 +86,10 @@ class Phuey(object):
         elif self.args.pattern == 'vapor':
             print('Running:\tplay_vapor')
             AnimationVapor(self).run()
+
+        elif self.args.pattern == 'popo':
+            print('Running:\popo')
+            AnimationPopo(self).run()
 
         elif self.args.pattern == 'list-lights':
             print('Running:\tlist_lights')
@@ -246,6 +251,8 @@ class Phuey(object):
         """
         for light_id, light in self.bridge.get_api()['lights'].items():
             print("%s -\t%s" % (light_id, light['name']))
+            print(light)
+            exit()
 
     def list_lights(self):
         """
@@ -407,7 +414,7 @@ class Phuey(object):
         redis_key = redis_key.replace('animation', 'global')
         redis_global = self._get_str_redis(redis_key)
         if redis_global:
-            return redis_global
+            return redis_globalget
 
         return None
 

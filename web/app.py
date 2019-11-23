@@ -255,7 +255,7 @@ def _validate_animation(animation: str) -> bool:
     Validates that the requested animation is a known, registered Phuey animation.
 
     """
-    if animation in ['vapor', 'cycle-color', 'marquee']:
+    if animation in ['vapor', 'cycle-color', 'marquee', 'popo']:
         return True
     return False
 

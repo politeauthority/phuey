@@ -68,9 +68,6 @@ class AnimationMarquee(object):
             for light_id in self.phuey.selected_lights:
                 print('Turning on: %s' % self.phuey.light_digest[light_id])
                 self.phuey.bridge.set_light(light_id, command)
-                # off_lights = self.phuey.selected_lights
-                # off_lights.remove(light_id)
-                # print('turning off lights: %s' % off_lights)
                 if last_light:
                     print('turning off light: %s' % self.phuey.light_digest[last_light])
                     self.phuey.bridge.set_light(last_light, {'on': False})
