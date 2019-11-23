@@ -38,9 +38,9 @@ def index() -> str:
 
 
 @app.route('/animation-list')
-def animations() -> str:
+def animation_list() -> str:
     """
-    Animations roster page.
+    Registered animation roster page.
 
     """
     data = {}
@@ -53,9 +53,13 @@ def animation_configure(animation) -> str:
     Animation configure form for a single animation and its options.
 
     """
+    animation_delay = _get_json_redis('phuey_animation_%s_delay' % animation)
+
     data = {
-        'name': animation
+        'animation_name': animation,
+        'animation_delay': animation_delay
     }
+
     return render_template('animation_configure.html', **data)
 
 
@@ -65,13 +69,12 @@ def animation_configure_save() -> werkzeug.wrappers.response.Response:
     Web route to save global app settings into redis.
 
     """
-    animation_name = request.form['animate-name']
-    animation_name = animation_name.replace('-', '_')
+    animation_name = request.form['animation-name']
     key_prefix = 'phuey_animation_%s' % animation_name
-    if 'animate-delay' in request.form:
-        redis_key = '%s_delay' % key_prefix
-        redis_client.set(redis_key, request.form['animate-delay'])
-        print('Saving Key: %s Value:%s' % (redis_key, request.form['animate-delay']))
+    redis_key = '%s_delay' % key_prefix
+
+    redis_client.set(redis_key, request.form['animation-delay'])
+    print('Saving Key: %s Value:%s' % (redis_key, request.form['animation-delay']))
 
     return redirect('/')
 
@@ -117,7 +120,7 @@ def settings_save() -> werkzeug.wrappers.response.Response:
         print('Saving Key: %s Value:%s' % ('phuey_global_brightness', request.form['global-brightness']))
     if 'global-delay' in request.form:
         redis_client.set('phuey_global_delay', request.form['global-delay'])
-        print('Saving Key: %s Value:%s' % ('phuey_global_delay', request.form['global-delay']))        
+        print('Saving Key: %s Value:%s' % ('phuey_global_delay', request.form['global-delay']))
 
     return redirect('/')
 
@@ -186,6 +189,7 @@ def run_animation(animation: str, options: list=[]) -> dict:
 
     """
     options.append('--no-restore')
+    options.append('-v')
     start_cmd = [PHUEY_CLI_APPLICATION, animation] + options
     print('Running: %s' % start_cmd)
     process = subprocess.Popen(start_cmd)
@@ -213,7 +217,7 @@ def kill_animation() -> dict:
     information about the app.
 
     """
-    data = {}    
+    data = {}
     current_proc = _get_json_redis('phuey_pid')
     if not current_proc:
         data['error'] = "Couldn't find a process to stop"

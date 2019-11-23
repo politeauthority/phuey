@@ -25,6 +25,8 @@ class AnimationVapor(object):
             'bri': self.phuey.brightness
         }
         self.vapor_lights = {}
+        self.phuey.set_global_delay('phuey_animation_vapor_delay')
+
 
     def run(self):
         """

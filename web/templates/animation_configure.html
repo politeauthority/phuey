@@ -2,12 +2,13 @@
 {% block content %}
 <div class="row">
   <div class="col-lg-6">
-    <h3>Animation - {{name}}</h3>
+    <h3>Animation - {{animation_name}}</h3>
     <form action="/animation-configure-save" method="POST">
       <input name="animate-name" type="hidden" value="{{name}}">
       <div class="form-group">
         <label for="delay">Delay in seconds</label>
-        <input name="animate-delay" class="form-control" id="delay" aria-describedby="delayHelp" placeholder="2">
+        <input name="animation-name" type="hidden" value="{{animation_name}}">
+        <input name="animation-delay" class="form-control" id="delay" aria-describedby="delayHelp" value="{{animation_delay}}">
         <small id="delayHelp" class="form-text text-muted">Controls timing between light switching.</small>
       </div>
       <button type="submit" class="btn btn-primary">Submit</button>

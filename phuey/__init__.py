@@ -30,7 +30,7 @@ class Phuey(object):
         self.selected_lights = self.config['light_ids']
         self.lights = self.bridge.get_light_objects('id')       # All lights in the Hue network
         self.brightness = self._set_global_brightness()
-        self.delay = self._set_global_delay()
+        # self.delay = self._set_global_delay()
         self.initial_state = {}
 
         self.list_lights()
@@ -315,6 +315,14 @@ class Phuey(object):
         hue_transition = int((delay * 1000) / 100)
         return hue_transition
 
+    def get_local_config(self, value: str) -> str:
+        """
+        """
+        value = redis_client.get(key)
+        if not value:
+            return ''
+        return value.decode('ascii')
+
     def _load_config(self):
         """
         Loads a configuration file from ~/.phuey/config.json or the --config argument
@@ -350,7 +358,7 @@ class Phuey(object):
             return 254
         return int(redis_bright)
 
-    def _set_global_delay(self) -> float:
+    def set_global_delay(self, redis_key: str=None) -> float:
         """
         Sets global baseline delay.
         Attempts to grab setting from CLI, then redis key `phuey_global_delay`, but if not neither
@@ -359,7 +367,13 @@ class Phuey(object):
 
         """
         delay = 0
-        redis_delay = self.redis.get('phuey_global_delay')
+
+        # Attempt to grab the requested animation delay
+        if redis_key:
+            redis_delay = self.redis.get(redis_key)
+
+        if not redis_delay:
+            redis_delay = self.redis.get('phuey_global_delay')
         if self.args.delay:
             delay = float(self.args.delay)
         elif redis_delay:
@@ -368,7 +382,10 @@ class Phuey(object):
         if delay < .01:
             delay = 3
 
-        return delay
+        self.delay = delay
+        if self.args.v:
+            print('\nDELAY: %s\n\n' % self.delay)
+        return True
 
     def _parse_args(self):
         """

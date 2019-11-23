@@ -11,6 +11,7 @@ class AnimationMarquee(object):
     def __init__(self, Phuey):
         self.phuey = Phuey
         self.stored_options = ['phuey_animation_marquee_delay']
+        self.phuey.set_global_delay('phuey_animation_marquee_delay')
         self.delta = {
             'sat': 234,
             'transitiontime': 1,
