@@ -11,6 +11,9 @@ class AnimationCycleColors(object):
     def __init__(self, Phuey):
         self.phuey = Phuey
         self.stored_options = ['phuey_animation_cycle_color_delay']
+        self.phuey.set_global_delay('phuey_animation_cycle_color_delay')
+        self.phuey.set_global_brightness('phuey_animation_cycle_color_brightness')
+        self.phuey.print_args()
         self.delta = {
             'sat': 234,
             'transitiontime': 4,
