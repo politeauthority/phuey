@@ -1,0 +1,7 @@
+.git*
+.pytest_cache*
+*.db-journal
+build*
+dist*
+*.db
+logs/*

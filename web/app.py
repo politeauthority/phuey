@@ -16,12 +16,12 @@ from flask import render_template
 from flask_redis import FlaskRedis
 import werkzeug
 
-PHUEY_CLI_APPLICATION = '/usr/local/bin/phuey'
+PHUEY_CLI_APPLICATION = '/app/phuey/__init__.py'
 
 app = Flask(__name__)
 
 # @todo: make config driven, duh?
-app.config['REDIS_URL'] = "redis://:@192.168.50.10:6379/0"
+app.config['REDIS_URL'] = "redis://:@%s:6379/0" % os.environ.get("PHUEY_DB_HOST")
 
 redis_client = FlaskRedis(app)
 
@@ -124,18 +124,12 @@ def settings_save() -> werkzeug.wrappers.response.Response:
 
 @app.route('/about')
 def about() -> str:
-    """
-    Phuey about.
-
-    """
+    """Phuey about. """
     return render_template('about.html')
 
 @app.route('/api/animate/<animation>', methods=['GET', 'POST'])
 def api_animate(animation) -> flask.wrappers.Response:
-    """
-    API route to runs a requested animation indefinitely.
-
-    """
+    """API route to runs a requested animation indefinitely. """
     data = {}
     data['animation'] = animation
     if not _validate_animation(animation):
@@ -186,7 +180,7 @@ def run_animation(animation: str, options: list=[]) -> dict:
 
     """
     options.append('--no-restore')
-    start_cmd = [PHUEY_CLI_APPLICATION, animation] + options
+    start_cmd = ['python3', PHUEY_CLI_APPLICATION, animation] + options
     print('Running: %s' % start_cmd)
     process = subprocess.Popen(start_cmd)
     data = {
@@ -243,20 +237,14 @@ def kill_animation() -> dict:
 
 
 def _validate_animation(animation: str) -> bool:
-    """
-    Validates that the requested animation is a known, registered Phuey animation.
-
-    """
-    if animation in ['vapor', 'cycle-color', 'marquee']:
+    """Validates that the requested animation is a known, registered Phuey animation. """
+    if animation in ['vapor', 'cycle-color', 'marquee', 'christmas-wave']:
         return True
     return False
 
 
 def _get_json_redis(key: str) -> str:
-    """
-    Gets a JSONable string from redis.
-
-    """
+    """Gets a JSONable string from redis. """
     value = redis_client.get(key)
     if not value:
         return None
@@ -264,10 +252,9 @@ def _get_json_redis(key: str) -> str:
 
 
 def _get_decoded_dict(the_dict: dict) -> dict:
-    """
-    This method might be over kill, but redis appears to be sending back non ASCII data, so this
-    method prunes all possible non usable data, to something that's usable.
-    @note: This should be revisited!
+    """This method might be over kill, but redis appears to be sending back non ASCII data, so this
+       method prunes all possible non usable data, to something that's usable.
+       @note: This should be revisited!
 
     """
     new_dict = {}
@@ -281,10 +268,7 @@ def _get_decoded_dict(the_dict: dict) -> dict:
 
 
 def _format_options(raw_options: list) -> list:
-    """
-    Forms options to be sent to to the CLI phuey app.
-
-    """
+    """Forms options to be sent to to the CLI phuey app. """
     if not raw_options:
         return []
 
@@ -299,10 +283,7 @@ def _format_options(raw_options: list) -> list:
     return options
 
 def _get_status() -> dict:
-    """
-    Pulls status values out of redis databases and organizes them in a dict
-
-    """
+    """Pulls status values out of redis databases and organizes them in a dict. """
     data = {
         'status': _get_json_redis('phuey_status'),
         'animation': _get_json_redis('phuey_animation')

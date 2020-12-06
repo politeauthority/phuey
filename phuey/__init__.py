@@ -9,13 +9,15 @@ from pathlib import Path
 import random
 import sys
 import time
+import pprint
 
 import redis
 from phue import Bridge
 
-from .modules.animation_vapor import AnimationVapor
-from .modules.animation_cycle_colors import AnimationCycleColors
-from .modules.animation_marquee import AnimationMarquee
+from modules.animation_vapor import AnimationVapor
+from modules.animation_christmas import AnimationChristmas
+from modules.animation_cycle_colors import AnimationCycleColors
+from modules.animation_marquee import AnimationMarquee
 
 __version__ = '0.0.1'
 
@@ -24,7 +26,7 @@ class Phuey(object):
 
     def __init__(self, animation=None):
         self.args = self._parse_args()
-        self.redis = redis.Redis()
+        self.redis = redis.Redis('192.168.50.6')
         self.config = self._load_config()
         self.bridge = Bridge(self.config['bridge_ip'])
         self.selected_lights = self.config['light_ids']
@@ -32,30 +34,20 @@ class Phuey(object):
         self.brightness = self._set_global_brightness()
         self.delay = self._set_global_delay()
         self.initial_state = {}
-
         self.list_lights()
 
     def connect(self):
-        """
-        Connects to the hue bridge.
-
-        """
+        """Connects to the hue bridge. """
         self.bridge.connect()
 
     def _print_selected_lights(self):
-        """
-        Prints all living room lights id and name
-
-        """
+        """Prints all living room lights id and name. """
         for light_id, light in self.lights.items():
             if light.light_id in self.selected_lights:
                 print("%s\t%s" % (light_id, light.name))
 
     def reset_lights(self):
-        """
-        Sets all living room lights off, then turns red
-
-        """
+        """Sets all living room lights off, then turns red. """
         command = {
             'hue': 0,
             'sat': 0,
@@ -67,10 +59,7 @@ class Phuey(object):
         self.bridge.set_light(self.selected_lights, command)
 
     def run(self):
-        """
-        Main run of script
-
-        """
+        """Main run of script. """
         self._print_welcome()
 
         if self.args.pattern == 'cycle-color':
@@ -84,6 +73,10 @@ class Phuey(object):
         elif self.args.pattern == 'vapor':
             print('Running:\tplay_vapor')
             AnimationVapor(self).run()
+
+        elif self.args.pattern == 'christmas-wave':
+            print('Running:\tplay_christmas')
+            AnimationChristmas(self).run()
 
         elif self.args.pattern == 'list-lights':
             print('Running:\tlist_lights')
@@ -102,10 +95,7 @@ class Phuey(object):
             exit(1)
 
     def play_random_color_play(self):
-        """
-        Grabs random colors and sets all light to that color, then changes.
-
-        """
+        """Grabs random colors and sets all light to that color, then changes. """
         living_room = [11, 12, 22, 23]
 
         self.bridge.set_light(living_room, 'bri', 0)
@@ -127,9 +117,8 @@ class Phuey(object):
             time.sleep(1)
 
     def play_marquee_around_the_room_random_color(self):
-        """
-        Cycles through lights IN ORDER to turn on one in at a random color
-        :: CLI TRIGGER: mark-random
+        """Cycles through lights IN ORDER to turn on one in at a random color
+           CLI TRIGGER: mark-random
 
         """
         self._reset_lights()
@@ -163,9 +152,8 @@ class Phuey(object):
             time.sleep(.5)
 
     def play_marquee_around_the_room(self):
-        """
-        Cycles through lights in order with one color until cycle is complete, then changes color
-        :: CLI TRIGGER: mark
+        """Cycles through lights in order with one color until cycle is complete, then changes color
+           CLI TRIGGER: mark
 
         """
         self._reset_lights()
@@ -324,6 +312,8 @@ class Phuey(object):
             config_location = self.args.confg
         elif os.path.exists("%s/.phuey/config.json" % str(Path.home())):
             config_location = "%s/.phuey/config.json" % str(Path.home())
+        elif os.path.exists("/app/config.json"):
+            config_location = "/app/config.json"
 
         if not config_location:
             print("Error - No confguration set.")
